@@ -33,7 +33,9 @@ jobs:
         run: npx vitest run --coverage
       
       - name: Build project
-        run: npm run build 
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.BACKEND_URL || 'https://YOUR_BACKEND_URL_HERE' }} 
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -62,7 +64,9 @@ jobs:
           cache: 'maven'
       
       - name: Run tests
-        run: ./mvnw test  
+        run: ./mvnw test
+        env:
+          SPRING_PROFILES_ACTIVE: test  
       
       - name: Build project
         run:  ./mvnw clean package 
@@ -78,23 +82,34 @@ jobs:
     needs: [frontend, backend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'  # Only on main branch
+    
+    permissions:
+      contents: write  # Required for GitHub Pages deployment
+    
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-build
-          path: ./frontend-build
+          path: ./dist
       
-      - name: Download backend artifact
-        uses: actions/download-artifact@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          name: backend-jar
-          path: ./backend-jar
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          cname: false  # Set to your custom domain if you have one
       
-      - name: Simulate deployment
+      - name: Backend Deployment Reminder
         run: |
-          echo "=== Frontend Files ==="
-          ls -la frontend-build/
-          echo "=== Backend JAR ==="
-          ls -la backend-jar/
-          echo "Would deploy to production here! 🚀"
+          echo "✅ Frontend deployed to GitHub Pages"
+          echo "⚠️  Backend deployment required:"
+          echo "    1. Go to Render dashboard: https://dashboard.render.com/"
+          echo "    2. Select service-status-backend"
+          echo "    3. Click 'Manual Deploy' > 'Deploy latest commit'"
+          echo "    4. Add BACKEND_URL secret to GitHub if not already done"
+          echo "       Settings > Secrets > Actions > New repository secret"
+          echo "       Name: BACKEND_URL, Value: https://your-app.onrender.com"

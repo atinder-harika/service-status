@@ -37,32 +37,155 @@ Full-stack, real-time observability platform that monitors service health (HTTP/
 
 ## Development
 
-### Frontend
+### Quick Start (No Database Setup Required)
+
+**For contributors:** Use H2 in-memory database for instant local development!
+
+#### Frontend
 ```bash
+cd frontend
 npm install
-npm run dev    # http://localhost:5173/service-status/
-npm test       # Vitest
-npm run build
+cp .env.example .env.local  # Already configured for localhost:8080
+npm run dev                 # http://localhost:5173/service-status/
+npm test                    # Vitest tests (no backend needed)
 ```
 
-### Backend
+#### Backend
 ```bash
 cd backend
-mvn clean install
-mvn spring-boot:run  # http://localhost:8080
-mvn test
+./mvnw test                                      # Uses H2 (no Supabase needed)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=test  # Run with H2
+# Backend runs on http://localhost:8080
 ```
 
+### Production-Like Setup (Optional)
+
+Only needed if you want to test with Supabase PostgreSQL:
+
+1. **Configure Supabase**
+   ```bash
+   cd backend/src/main/resources
+   cp application.properties.example application.properties
+   # Edit application.properties with your Supabase credentials
+   ```
+
+2. **Run Migrations**
+   ```bash
+   ./mvnw flyway:migrate
+   ```
+
+3. **Start Backend**
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
 **Prerequisites:** 
-- Node.js 20+
-- Java 17+
-- Maven 3.8+
-- PostgreSQL (or Supabase connection)
+- Node.js 20+ (frontend)
+- Java 21+ (backend)
+- Maven (bundled as `mvnw`)
+- PostgreSQL (optional - H2 used by default)
 
 ## Releases
 - **v0.0.1** - Phase 0: docs, LICENSE, CI setup
 - **v0.1.0** - Phase I-A: Vite + TypeScript + Tailwind migration
 - **v0.2.0** - Phase I-B: Spring Boot backend with PostgreSQL integration
+
+## Deployment
+
+### Architecture
+- **Frontend:** GitHub Pages (auto-deployed via CI/CD)
+- **Backend:** Render free tier (manual deployment)
+- **Database:** Supabase PostgreSQL free tier
+
+### Deployment Workflow
+
+#### 1. First-Time Setup
+
+**A. Supabase Database**
+1. Create account at [supabase.com](https://supabase.com) (free tier)
+2. Create new project, note connection details
+3. Configure backend locally:
+   ```bash
+   cd backend/src/main/resources
+   cp application.properties.example application.properties
+   # Add your Supabase credentials
+   ```
+4. Run Flyway migrations:
+   ```bash
+   ./mvnw flyway:migrate
+   ```
+
+**B. Render Backend**
+1. Create account at [render.com](https://render.com) (free tier)
+2. Create new Web Service:
+   - **Name:** `service-status-backend`
+   - **Repository:** Connect your GitHub repo
+   - **Branch:** `main`
+   - **Root Directory:** `backend`
+   - **Build Command:** `./mvnw clean package -DskipTests`
+   - **Start Command:** `java -jar target/*.jar`
+   - **Environment:** Add these environment variables:
+     ```
+     SPRING_DATASOURCE_URL=jdbc:postgresql://YOUR_HOST:5432/YOUR_DB
+     SPRING_DATASOURCE_PASSWORD=YOUR_PASSWORD
+     SPRING_PROFILES_ACTIVE=production
+     ```
+3. Note your backend URL (e.g., `https://service-status-backend.onrender.com`)
+
+**C. GitHub Secrets**
+1. Go to your repo: **Settings > Secrets and variables > Actions**
+2. Add new repository secret:
+   - **Name:** `BACKEND_URL`
+   - **Value:** `https://service-status-backend.onrender.com` (your Render URL)
+
+#### 2. Continuous Deployment
+
+**Automated (Frontend):**
+- Push to `main` branch triggers GitHub Actions
+- Workflow builds frontend with `BACKEND_URL` injected
+- Auto-deploys to GitHub Pages
+- Access at: `https://YOUR_USERNAME.github.io/service-status/`
+
+**Manual (Backend):**
+- Render free tier doesn't support webhooks (cost $)
+- After pushing to `main`:
+  1. Go to [Render Dashboard](https://dashboard.render.com/)
+  2. Select `service-status-backend`
+  3. Click **"Manual Deploy" > "Deploy latest commit"**
+  4. Wait ~2-3 minutes for build
+
+#### 3. Verification
+
+After deployment:
+1. **Backend Health:** Visit `https://YOUR_BACKEND_URL/actuator/health`
+   - Should return: `{"status":"UP"}`
+2. **Backend API:** Visit `https://YOUR_BACKEND_URL/api/services`
+   - Should return JSON array of services
+3. **Frontend:** Visit `https://YOUR_USERNAME.github.io/service-status/`
+   - Should display service cards with statuses
+   - Check browser console for errors
+
+### Troubleshooting Deployment
+
+**Frontend shows "Failed to fetch services":**
+- Verify `BACKEND_URL` secret is set correctly in GitHub
+- Check CORS configuration in backend `application.properties`
+- Verify backend is running on Render (check logs)
+
+**Backend build fails on Render:**
+- Check Render logs for Java/Maven errors
+- Verify environment variables are set
+- Ensure `pom.xml` dependencies are correct
+
+**Database connection fails:**
+- Verify Supabase connection string in Render environment variables
+- Check Supabase project is active (free tier pauses after inactivity)
+- Test connection locally with same credentials
+
+**GitHub Pages shows 404:**
+- Ensure repo Settings > Pages > Source is set to "gh-pages branch"
+- Workflow may need 2-3 minutes after first push
+- Check Actions tab for deployment errors
 
 ---
 
