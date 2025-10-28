@@ -1,11 +1,36 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from './App';
+import { ApiService } from './services/api';
+
+// Mock the API service
+vi.mock('./services/api');
 
 describe('App', () => {
-  it('renders Service Status heading', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    // Mock successful API response
+    vi.spyOn(ApiService, 'fetchServices').mockResolvedValue([
+      {
+        title: 'All Services',
+        checks: [],
+        status: 'Operational',
+      },
+    ]);
+  });
+
+  it('renders loading state initially', () => {
     render(<App />);
-    const heading = screen.getByRole('heading', { name: /service status/i });
-    expect(heading).toBeInTheDocument();
+    expect(screen.getByText(/Loading services.../i)).toBeInTheDocument();
+  });
+
+  it('renders Service Status heading after loading', async () => {
+    render(<App />);
+    
+    await waitFor(() => {
+      const heading = screen.getByRole('heading', { name: /service status monitor/i });
+      expect(heading).toBeInTheDocument();
+    });
   });
 });

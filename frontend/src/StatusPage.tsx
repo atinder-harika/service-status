@@ -1,34 +1,40 @@
 import { useState, useEffect } from 'react';
-import { SERVICE_CONFIG, INCIDENTS_DATA } from './data';
+import { INCIDENTS_DATA } from './data';
 import type { ServiceGroup, ServiceStatus } from './types';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const StatusPage = (): JSX.Element => {
   const [services, setServices] = useState<ServiceGroup[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const updateAllServices = (): void => {
-    const updatedServices: ServiceGroup[] = [];
-    
-    for (const group of SERVICE_CONFIG) {
-      const updatedGroupChecks = [];
-      for (const service of group.checks) {
-        const isOperational = Math.random() > 0.2;
-        updatedGroupChecks.push({
-          ...service,
-          status: (isOperational ? 'Operational' : 'Down') as ServiceStatus,
-        });
+  const fetchServices = async (): Promise<void> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/services`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      updatedServices.push({
-        ...group,
-        checks: updatedGroupChecks
-      });
+      
+      const data: ServiceGroup[] = await response.json();
+      setServices(data);
+      setError(null);
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch services:', err);
+      setError(err instanceof Error ? err.message : 'Failed to connect to backend');
+      setLoading(false);
     }
-    
-    setServices(updatedServices);
   };
 
   useEffect(() => {
-    updateAllServices();
-    const interval = setInterval(updateAllServices, 60000); 
+    // Initial fetch
+    fetchServices();
+    
+    // Poll every 30 seconds (matches backend scheduler)
+    const interval = setInterval(fetchServices, 30000);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -46,6 +52,31 @@ const StatusPage = (): JSX.Element => {
         return 'text-neutral-400';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-neutral-300">Loading services...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl text-red-400 mb-4">Failed to load services</div>
+          <div className="text-sm text-neutral-400">{error}</div>
+          <button 
+            onClick={fetchServices}
+            className="mt-4 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -75,7 +106,7 @@ const StatusPage = (): JSX.Element => {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <span
-                      className={`h-4 w-4 rounded-full ${getStatusColorClass(service.status ?? 'Down')}`}
+                      className={`h-4 w-4 rounded-full ${getStatusColorClass(service.currentStatus)}`}
                     >
                       <svg
                         className="animate-pulse fill-current h-4 w-4"
@@ -94,15 +125,24 @@ const StatusPage = (): JSX.Element => {
                       {service.name}
                     </p>
                   </div>
-                  <p className={`text-sm font-semibold ${getStatusColorClass(service.status ?? 'Down')}`}>
-                    {service.status ?? 'Down'}
+                  <p className={`text-sm font-semibold ${getStatusColorClass(service.currentStatus)}`}>
+                    {service.currentStatus}
                   </p>
+                  {service.lastCheckedAt && (
+                    <p className="text-xs text-neutral-500 mt-1">
+                      Last checked: {new Date(service.lastCheckedAt).toLocaleTimeString()}
+                    </p>
+                  )}
                 </a>
               ))}
             </div>
           </div>
         ))}
       </section>
+
+      <div className="text-center text-sm text-neutral-500 mb-8">
+        Auto-refreshing every 30 seconds
+      </div>
 
       <section className="mb-12">
         <h2 className="text-2xl font-bold mb-6 text-neutral-200">
