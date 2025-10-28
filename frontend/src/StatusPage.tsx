@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
-import { INCIDENTS_DATA } from './data';
-import type { ServiceGroup, ServiceStatus } from './types';
+import type { ServiceGroup, ServiceStatus, Incident } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+// Temporary mock incidents (TODO: fetch from backend API)
+const INCIDENTS_DATA: Incident[] = [
+  { 
+    serviceName: 'System', 
+    type: 'info', 
+    message: 'All services operational.' 
+  },
+];
 
 const StatusPage = (): JSX.Element => {
   const [services, setServices] = useState<ServiceGroup[]>([]);

@@ -1,11 +1,20 @@
 import { useServices } from '../hooks/useServices';
-import { INCIDENTS_DATA } from '../data';
 import { APP_CONFIG } from '../config/constants';
+import type { Incident } from '../types';
 import ServiceGroup from '../components/ServiceGroup';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import IncidentList from '../components/IncidentList';
 import AutoRefreshIndicator from '../components/AutoRefreshIndicator';
+
+// Temporary mock incidents (TODO: fetch from backend API)
+const INCIDENTS_DATA: Incident[] = [
+  { 
+    serviceName: 'System', 
+    type: 'info', 
+    message: 'All services operational.' 
+  },
+];
 
 /**
  * StatusPage - Main page component (like Controller in backend)
