@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: service-status-backend
+    runtime: java
+    buildCommand: cd backend && ./mvnw clean package -DskipTests
+    startCommand: cd backend && java -jar target/*.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 21
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_FLYWAY_SCHEMAS
+        value: dev
+      - key: SPRING_FLYWAY_DEFAULT_SCHEMA
+        value: dev
