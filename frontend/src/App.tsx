@@ -1,4 +1,4 @@
-import StatusPage from './StatusPage';
+import StatusPage from './pages/StatusPage';
 
 const App = (): JSX.Element => {
   return (
