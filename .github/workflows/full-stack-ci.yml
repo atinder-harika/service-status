@@ -35,7 +35,8 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.BACKEND_URL || 'https://YOUR_BACKEND_URL_HERE' }} 
+          # If BACKEND_URL secret not set, build uses default from config/constants.ts
+          VITE_API_URL: ${{ secrets.BACKEND_URL }} 
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
