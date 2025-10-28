@@ -1,14 +1,18 @@
-export type ServiceStatus = 'Operational' | 'Degraded' | 'Maintenance' | 'Down';
+export type ServiceStatus = 'Operational' | 'Degraded' | 'Maintenance' | 'Down' | 'Unknown';
 
 export interface ServiceCheck {
+  id: number;
   name: string;
   url: string;
-  status?: ServiceStatus;
+  checkType: string;
+  currentStatus: ServiceStatus;
+  lastCheckedAt: string | null;
 }
 
 export interface ServiceGroup {
   title: string;
   checks: ServiceCheck[];
+  status: ServiceStatus;
 }
 
 export type IncidentType = 'warning' | 'info';

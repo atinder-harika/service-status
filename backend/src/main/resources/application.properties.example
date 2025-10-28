@@ -1,0 +1,26 @@
+spring.application.name=service-status-backend
+
+# Server Configuration
+server.port=8080
+
+# Supabase PostgreSQL Connection
+# Replace with YOUR Supabase credentials from Dashboard → Settings → Database
+spring.datasource.url=jdbc:postgresql://YOUR_SUPABASE_HOST:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=YOUR_SUPABASE_PASSWORD
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Flyway Configuration
+spring.flyway.enabled=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.baseline-on-migrate=true
+spring.flyway.schemas=dev
+spring.flyway.default-schema=dev
+
+# Spring Actuator (exposes /actuator/health endpoint)
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.show-details=always
+
+# Logging
+logging.level.com.atinder.service_status_backend=DEBUG
+logging.level.org.springframework.jdbc.core=DEBUG
