@@ -3,9 +3,7 @@ nixPkgs = ['...', 'jdk']
 
 [phases.build]
 cmds = [
-    'cd backend',
-    'chmod +x mvnw',
-    './mvnw clean package -DskipTests'
+    'cd backend && chmod +x mvnw && ./mvnw clean package -DskipTests'
 ]
 
 [start]
