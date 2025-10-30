@@ -10,7 +10,6 @@
 ## 🚀 Live Demo
 
 - **Frontend:** [https://atinder-harika.github.io/service-status/](https://atinder-harika.github.io/service-status/)
-- **Backend API:** *(Deploy your own - see [SETUP.md](SETUP.md))*
 
 ---
 
