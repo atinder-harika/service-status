@@ -4,18 +4,26 @@ Complete guide to setting up and running the service-status project on your loca
 
 ---
 
-## Prerequisites
+## 📋 Prerequisites
 
-Ensure you have the following installed:
+Install these first:
 
-- **Node.js 20+** ([Download](https://nodejs.org/))
-- **Java 21+** ([Download](https://adoptium.net/))
-- **Git** ([Download](https://git-scm.com/))
-- **PostgreSQL** (optional - for production-like testing with Supabase)
+| Tool | Version | Download |
+|------|---------|----------|
+| **Node.js** | 20+ | [nodejs.org](https://nodejs.org/) |
+| **Java** | 21+ | [adoptium.net](https://adoptium.net/) |
+| **Git** | Latest | [git-scm.com](https://git-scm.com/) |
+
+**Verify installation:**
+```bash
+node --version  # Should show v20.x or higher
+java -version   # Should show 21.x or higher
+git --version   # Any recent version
+```
 
 ---
 
-## Quick Start (5 Minutes)
+## 🚀 Quick Start (5 Minutes)
 
 ### 1. Clone the Repository
 
@@ -24,7 +32,9 @@ git clone https://github.com/atinder-harika/service-status.git
 cd service-status
 ```
 
-### 2. Frontend Setup
+---
+
+## 🎨 Frontend Setup
 
 ```bash
 cd frontend
@@ -32,359 +42,168 @@ cd frontend
 # Install dependencies
 npm install
 
-# Create local environment file
+# Copy environment template
 cp .env.example .env.local
+
+# Edit .env.local (optional - defaults work for local backend)
+# VITE_API_URL=http://localhost:8080
 
 # Start development server
 npm run dev
 ```
 
-Frontend runs at: **http://localhost:5173/service-status/**
+**Frontend runs at:** http://localhost:5173/service-status/
 
-### 3. Backend Setup
+**Available scripts:**
+- `npm run dev` - Start dev server
+- `npm test` - Run tests in watch mode
+- `npm run build` - Build for production
 
-**Option A: Without Database (Frontend Only)**
+---
 
-The frontend can run standalone and will show connection errors (useful for UI development).
+## ☕ Backend Setup
 
-**Option B: With Backend API**
+### Step 1: Create Supabase Account (Free)
+
+1. Go to [supabase.com](https://supabase.com) and sign up
+2. Create a new project (choose free tier)
+3. Wait for project to initialize (~2 minutes)
+
+### Step 2: Get Database Connection String
+
+**Important:** Use **Session Pooling** JDBC URL, not Direct Connection!
+
+1. In Supabase dashboard: **Settings → Database**
+2. Find **Connection String** section
+3. Select **JDBC** tab
+4. Copy the **Session Pooling** URL (format: `jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres?user=postgres.xxxxx&password=[YOUR-PASSWORD]`)
+5. You'll need to split this into 3 parts:
+   - **URL:** `jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres` (everything before `?`)
+   - **Username:** `postgres.xxxxx` (the `user=` part)
+   - **Password:** Your actual database password (replace `[YOUR-PASSWORD]`)
+
+### Step 3: Configure Backend
 
 ```bash
 cd backend
 
-# Run tests (uses mocked data, no database needed)
-./mvnw test
+# Copy configuration template
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
 
-# Run backend (connects to your Supabase or configure H2)
-./mvnw spring-boot:run
+# Edit application-local.properties with your Supabase details
 ```
 
-Backend runs at: **http://localhost:8080**
-
----
-
-## Configuration
-
-### Frontend Environment Variables
-
-Create `frontend/.env.local`:
-
-```env
-# Backend API URL (default: local Spring Boot server)
-VITE_API_URL=http://localhost:8080
-```
-
-### Backend Configuration
-
-#### Option 1: Use Your Own Supabase (Recommended)
-
-1. Create a free account at [supabase.com](https://supabase.com)
-2. Create a new project
-3. Copy connection details from: **Settings → Database**
-
-Create `backend/src/main/resources/application.properties`:
-
+**Example `application-local.properties`:**
 ```properties
-spring.application.name=service-status-backend
-server.port=8080
-
-# Your Supabase PostgreSQL Connection
-spring.datasource.url=jdbc:postgresql://YOUR_SUPABASE_HOST:5432/postgres
-spring.datasource.username=postgres
+# Supabase Session Pooling JDBC URL (IMPORTANT: Use session pooling!)
+spring.datasource.url=jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres
+spring.datasource.username=postgres.xxxxx
 spring.datasource.password=YOUR_PASSWORD
 spring.datasource.driver-class-name=org.postgresql.Driver
 
-# Flyway Configuration (creates 'dev' schema and tables)
-spring.flyway.enabled=true
-spring.flyway.locations=classpath:db/migration
-spring.flyway.baseline-on-migrate=true
-spring.flyway.schemas=dev
-spring.flyway.default-schema=dev
-
-# Spring Actuator
-management.endpoints.web.exposure.include=health,info
-management.endpoint.health.show-details=always
-
-# Logging
-logging.level.com.atinder.service_status_backend=DEBUG
-logging.level.org.springframework.jdbc.core=DEBUG
-```
-
-4. Run Flyway migration to create tables:
+### Step 4: Run Backend
 
 ```bash
-./mvnw flyway:migrate
-```
-
-5. Insert test services:
-
-```sql
-INSERT INTO dev.services (name, url, check_type) 
-VALUES 
-  ('Google', 'https://www.google.com', 'HTTP'),
-  ('GitHub', 'https://github.com', 'HTTP');
-```
-
-#### Option 2: Run Tests Only (No Database)
-
-Tests use Mockito mocks and don't require any database connection:
-
-```bash
-./mvnw test
-```
-
-All 15 tests should pass instantly with no configuration needed.
-
----
-
-## Running the Full Stack Locally
-
-### Terminal 1: Backend
-```bash
-cd backend
+# Run with Maven wrapper (local profile is default)
 ./mvnw spring-boot:run
-```
 
-### Terminal 2: Frontend
-```bash
-cd frontend
-npm run dev
-```
-
-### Terminal 3: Watch Tests (Optional)
-```bash
-# Frontend tests
-cd frontend
-npm test
-
-# Backend tests
-cd backend
+# Or run tests only (no database needed)
 ./mvnw test
 ```
 
----
+**Backend runs at:** http://localhost:8080
 
-## Project Structure
-
-```
-service-status/
-├── frontend/              # React + TypeScript + Vite + Tailwind
-│   ├── src/
-│   │   ├── pages/         # Page controllers (StatusPage)
-│   │   ├── components/    # Reusable UI components
-│   │   ├── services/      # API layer (fetch calls)
-│   │   ├── hooks/         # Custom React hooks (useServices)
-│   │   ├── utils/         # Pure utility functions (status helpers)
-│   │   ├── config/        # Constants (API_BASE_URL, POLLING_INTERVAL)
-│   │   └── types/         # TypeScript interfaces
-│   ├── .env.example       # Template for local development
-│   └── package.json
-│
-├── backend/               # Spring Boot + Java 21 + PostgreSQL
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   ├── controller/    # REST API endpoints
-│   │   │   │   ├── service/       # Business logic (health checks)
-│   │   │   │   ├── repository/    # Database access (Spring Data JDBC)
-│   │   │   │   ├── model/         # Entity classes (MonitoredService)
-│   │   │   │   └── dto/           # Data transfer objects
-│   │   │   └── resources/
-│   │   │       ├── application.properties.example
-│   │   │       └── db/migration/  # Flyway SQL migrations
-│   │   └── test/
-│   │       └── java/              # JUnit 5 + Mockito tests
-│   └── pom.xml
-│
-└── .github/
-    └── workflows/
-        └── full-stack-ci.yml      # CI/CD pipeline
-```
+**Verify it's working:**
+- Open http://localhost:8080/actuator/health in your browser
+- Should return: `{"status":"UP"}`
 
 ---
 
-## Testing
-
-### Frontend Tests (Vitest + React Testing Library)
+## 🧪 Testing
 
 ```bash
+# Frontend (Vitest + React Testing Library)
 cd frontend
-
-# Run tests once
-npm test
-
-# Run tests in watch mode
-npm test -- --watch
-
-# Run with coverage
+npm test              # Watch mode
+npm test -- --run     # Run once
 npm test -- --coverage
-```
 
-**Coverage goal:** 70%+ lines
-
-### Backend Tests (JUnit 5 + Mockito)
-
-```bash
+# Backend (JUnit 5 + Mockito - no database needed!)
 cd backend
-
-# Run all tests
 ./mvnw test
-
-# Run specific test class
-./mvnw test -Dtest=HealthCheckServiceTest
-
-# Run with coverage
-./mvnw test jacoco:report
 ```
 
-**Coverage goal:** 70%+ lines
+**Coverage Target:** 70%+ lines
 
 ---
 
-## Common Tasks
+## 🔧 Common Tasks
 
-### Add a New Service to Monitor
+### Add a Service to Monitor
 
-**Option 1: Via Database**
+Connect to your Supabase database and run:
 ```sql
 INSERT INTO dev.services (name, url, check_type) 
 VALUES ('My API', 'https://api.example.com/health', 'HTTP');
 ```
 
-**Option 2: Via API (when implemented)**
-```bash
-curl -X POST http://localhost:8080/api/services \
-  -H "Content-Type: application/json" \
-  -d '{"name":"My API","url":"https://api.example.com/health","checkType":"HTTP"}'
-```
-
-Frontend will automatically fetch and display the new service.
+The frontend will automatically fetch and display the new service on next refresh.
 
 ### Change Health Check Interval
 
-**Backend:** Edit [`backend/src/main/java/.../HealthCheckService.java`](backend/src/main/java/.../HealthCheckService.java ):
+**Backend:** `backend/src/main/java/.../service/HealthCheckService.java`
 ```java
-@Scheduled(fixedDelay = 30000)  // 30 seconds (30000ms)
+@Scheduled(fixedDelay = 30000)  // Change to desired milliseconds
 ```
 
-**Frontend:** Edit [`frontend/src/config/constants.ts`](frontend/src/config/constants.ts ):
+**Frontend:** `frontend/src/config/constants.ts`
 ```typescript
 export const POLLING_INTERVAL = 30000; // Match backend interval
 ```
 
-### View Backend Logs
-
-```bash
-cd backend
-./mvnw spring-boot:run
-
-# Check health endpoint
-curl http://localhost:8080/actuator/health
-
-# Check API endpoint
-curl http://localhost:8080/api/services
-```
-
 ---
 
-## Troubleshooting
-
-### Frontend can't connect to backend
-
-**Symptom:** "Failed to fetch services" error
-
-**Solutions:**
-1. Verify backend is running: `curl http://localhost:8080/actuator/health`
-2. Check `frontend/.env.local` has correct `VITE_API_URL`
-3. Restart dev server after changing `.env.local`
-4. Check browser console for CORS errors
+## 🚨 Troubleshooting
 
 ### Backend won't start
+- Verify Java 21: `java -version`
+- Check Supabase credentials in `application-local.properties`
+- Use **Session Pooling** JDBC URL (not Direct Connection!)
+- Ensure Supabase project is active
 
-**Symptom:** "Failed to load ApplicationContext" or database errors
-
-**Solutions:**
-1. Verify Java 21 installed: `java -version`
-2. Check `application.properties` has valid Supabase credentials
-3. Ensure Flyway migrations ran: `./mvnw flyway:info`
-4. Check Supabase project is active (free tier pauses after inactivity)
+### Frontend can't connect
+- Verify backend is running: Open http://localhost:8080/actuator/health
+- Check `VITE_API_URL` in `.env.local`
+- Restart dev server after changing `.env.local`
 
 ### Tests failing
-
-**Frontend:**
-- Clear node_modules: `rm -rf node_modules && npm install`
-- Check `setupTests.ts` imports `@testing-library/jest-dom`
-
-**Backend:**
-- Clean build: `./mvnw clean test`
-- Tests should NOT require database (all mocked)
-- If seeing database errors, ensure tests use `@Mock` not `@SpringBootTest`
+- Frontend: Clear cache `rm -rf node_modules && npm install`
+- Backend: Clean build `./mvnw clean test`
+- Backend tests should NEVER need database (all mocked)
 
 ### Port already in use
-
-**Frontend (5173):**
 ```bash
-# Kill process on port 5173
-lsof -ti:5173 | xargs kill -9  # Mac/Linux
-netstat -ano | findstr :5173   # Windows (find PID, then taskkill)
-```
-
-**Backend (8080):**
-```bash
-# Kill process on port 8080
-lsof -ti:8080 | xargs kill -9  # Mac/Linux
-netstat -ano | findstr :8080   # Windows
+# Windows PowerShell
+netstat -ano | findstr :5173  # Find PID
+taskkill /PID <PID> /F        # Kill process
 ```
 
 ---
 
-## Build for Production
-
-### Frontend
+## 📦 Build for Production
 
 ```bash
-cd frontend
-npm run build
-```
+# Frontend
+cd frontend && npm run build  # Output: dist/
 
-Output: `frontend/dist/` (static files ready for deployment)
-
-### Backend
-
-```bash
-cd backend
-./mvnw clean package -DskipTests
-```
-
-Output: `backend/target/service-status-backend-0.0.1-SNAPSHOT.jar`
-
-Run JAR:
-```bash
-java -jar backend/target/*.jar
+# Backend
+cd backend && ./mvnw clean package -DskipTests  # Output: target/*.jar
 ```
 
 ---
 
-## Deployment
-
-See [README.md](README.md) deployment section for:
-- GitHub Pages (frontend)
-- Render/Railway (backend)
-- Supabase (database)
-
----
-
-## Additional Resources
-
-- [Contributing Guide](CONTRIBUTING.md) - How to contribute code
-- [Future Plans](FUTURE_PLANS.md) - Planned enhancements
-- [Architecture Docs](frontend/ARCHITECTURE.md) - Frontend architecture details
-- [Copilot Instructions](.github/copilot-instructions.md) - Project conventions
-
----
-
-## Getting Help
+## ❓ Getting Help
 
 - **Bug reports:** [Open an issue](https://github.com/atinder-harika/service-status/issues)
-- **Questions:** Check existing issues or start a discussion
+- **Questions:** Check existing issues
 - **Pull requests:** See [CONTRIBUTING.md](CONTRIBUTING.md)
