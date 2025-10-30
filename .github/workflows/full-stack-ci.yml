@@ -35,7 +35,7 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          # If BACKEND_URL secret not set, build uses default from config/constants.ts
+          # Set BACKEND_URL secret in GitHub repo settings to override
           VITE_API_URL: ${{ secrets.BACKEND_URL }} 
 
       - name: Upload build artifacts
@@ -102,13 +102,8 @@ jobs:
           publish_dir: ./dist
           cname: false  # Set to your custom domain if you have one
       
-      - name: Backend Deployment Reminder
+      - name: Deployment Summary
         run: |
           echo "✅ Frontend deployed to GitHub Pages"
-          echo "⚠️  Backend deployment required:"
-          echo "    1. Go to Render dashboard: https://dashboard.render.com/"
-          echo "    2. Select service-status-backend"
-          echo "    3. Click 'Manual Deploy' > 'Deploy latest commit'"
-          echo "    4. Add BACKEND_URL secret to GitHub if not already done"
-          echo "       Settings > Secrets > Actions > New repository secret"
-          echo "       Name: BACKEND_URL, Value: https://your-app.onrender.com"
+          echo ""
+          echo "📝 Backend deployment is automatic on Railway (connected to main branch)"

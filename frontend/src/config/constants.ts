@@ -2,7 +2,7 @@
  * Application Configuration Constants
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const POLLING_INTERVAL = 30000; // 30 seconds (matches backend scheduler)
 
