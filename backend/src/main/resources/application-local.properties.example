@@ -1,7 +1,7 @@
 # Local development profile - Supabase PostgreSQL
 # INSTRUCTIONS:
 # 1. Copy this file to application-local.properties (gitignored)
-# 2. Replace placeholders with your Supabase **POOLER** connection details
+# 2. Replace placeholders with your Supabase **SESSION POOLER** connection details
 # 3. Create 'dev' schema in your Supabase project for isolation
 # 4. Run `./mvnw spring-boot:run` (uses 'local' profile by default)
 
