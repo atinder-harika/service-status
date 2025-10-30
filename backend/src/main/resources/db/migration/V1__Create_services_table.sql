@@ -1,6 +1,7 @@
 -- Services table: stores monitored service configurations
+-- Uses schema specified in spring.flyway.default-schema property
 
-CREATE TABLE IF NOT EXISTS dev.services (
+CREATE TABLE IF NOT EXISTS services (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     url VARCHAR(512) NOT NULL,
@@ -11,4 +12,4 @@ CREATE TABLE IF NOT EXISTS dev.services (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 ); 
 
-CREATE INDEX idx_services_name ON dev.services(name);
+CREATE INDEX IF NOT EXISTS idx_services_name ON services(name);
