@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local configuration files (contributors create from .example files) ###
+src/main/resources/application-local.properties

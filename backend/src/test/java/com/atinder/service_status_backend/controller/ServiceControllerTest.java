@@ -3,9 +3,12 @@ package com.atinder.service_status_backend.controller;
 import com.atinder.service_status_backend.model.MonitoredService;
 import com.atinder.service_status_backend.repository.ServiceRepository;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,13 +27,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests HTTP endpoints with mocked repository
  */
 @WebMvcTest(ServiceController.class)
+@Import(ServiceControllerTest.TestConfig.class)
 class ServiceControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
     private ServiceRepository serviceRepository;
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public ServiceRepository serviceRepository() {
+            return Mockito.mock(ServiceRepository.class);
+        }
+    }
 
     @Test
     void testGetAllServices_ReturnsServiceGroups() throws Exception {

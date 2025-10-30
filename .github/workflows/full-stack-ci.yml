@@ -65,7 +65,7 @@ jobs:
           cache: 'maven'
       
       - name: Run tests
-        run: ./mvnw test
+        run: ./mvnw test -Dspring.profiles.active=test
       
       - name: Build project
         run: ./mvnw clean package -DskipTests 
@@ -105,5 +105,5 @@ jobs:
       - name: Deployment Summary
         run: |
           echo "✅ Frontend deployed to GitHub Pages"
-          echo ""
-          echo "📝 Backend deployment is automatic on Railway (connected to main branch)"
+          echo "📝 Backend auto-deploys on Railway (connected to main branch)"
+          echo "🔄 Development branch: CI tests only, no deployment"

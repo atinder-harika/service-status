@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,6 @@ import com.atinder.service_status_backend.repository.ServiceRepository;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*") // TODO: Restrict in production to frontend domain
 public class ServiceController {
     
     private final ServiceRepository serviceRepository;
