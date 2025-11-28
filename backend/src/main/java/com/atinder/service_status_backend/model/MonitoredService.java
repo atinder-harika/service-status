@@ -16,7 +16,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@Table(name = "services", schema = "dev")
+@Table(name = "services")
 public class MonitoredService {
     
     @Id
