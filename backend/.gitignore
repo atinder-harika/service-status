@@ -34,3 +34,6 @@ build/
 
 ### Local configuration files (contributors create from .example files) ###
 src/main/resources/application-local.properties
+
+### Local Scripts ###
+local-prod-run.ps1
