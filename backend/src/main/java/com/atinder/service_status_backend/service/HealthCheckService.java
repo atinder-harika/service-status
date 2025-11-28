@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.atinder.service_status_backend.model.MonitoredService;
@@ -27,6 +28,7 @@ public class HealthCheckService {
     }
 
     @Scheduled(fixedDelay = 30000)
+    @Transactional
     public void checkAllServices(){
         try{
             serviceRepository
