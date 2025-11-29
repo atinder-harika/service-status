@@ -28,7 +28,6 @@ public class HealthCheckService {
     }
 
     @Scheduled(fixedDelay = 30000)
-    @Transactional
     public void checkAllServices(){
         try{
             serviceRepository
