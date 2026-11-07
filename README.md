@@ -7,9 +7,9 @@
 
 ---
 
-## 🚀 Live Demo
+## Status
 
-**Frontend:** [https://atinder-harika.github.io/service-status/](https://atinder-harika.github.io/service-status/)
+The live site is offline for now. The monitor crashes after a few hours, and finding and fixing that is the next job for this project. You can still run it locally with the steps below.
 
 ---
 
