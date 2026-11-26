@@ -63,45 +63,24 @@ npm run dev
 
 ## ☕ Backend Setup
 
-### Step 1: Create Supabase Account (Free)
+### Step 1: Start a local PostgreSQL
 
-1. Go to [supabase.com](https://supabase.com) and sign up
-2. Create a new project (choose free tier)
-3. Wait for project to initialize (~2 minutes)
+```bash
+docker run -d --name ss-pg -p 5432:5432 -e POSTGRES_PASSWORD=pg postgres:16-alpine
+```
 
-### Step 2: Get Database Connection String
-
-**Important:** Use **Session Pooling** JDBC URL, not Direct Connection!
-
-1. In Supabase dashboard: **Settings → Database**
-2. Find **Connection String** section
-3. Select **JDBC** tab
-4. Copy the **Session Pooling** URL (format: `jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres?user=postgres.xxxxx&password=[YOUR-PASSWORD]`)
-5. You'll need to split this into 3 parts:
-   - **URL:** `jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres` (everything before `?`)
-   - **Username:** `postgres.xxxxx` (the `user=` part)
-   - **Password:** Your actual database password (replace `[YOUR-PASSWORD]`)
-
-### Step 3: Configure Backend
+### Step 2: Configure Backend
 
 ```bash
 cd backend
-
-# Copy configuration template
 cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
-
-# Edit application-local.properties with your Supabase details
 ```
 
-**Example `application-local.properties`:**
-```properties
-# Supabase Session Pooling JDBC URL (IMPORTANT: Use session pooling!)
-spring.datasource.url=jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:6543/postgres
-spring.datasource.username=postgres.xxxxx
-spring.datasource.password=YOUR_PASSWORD
-spring.datasource.driver-class-name=org.postgresql.Driver
+The example already points at that container. In production (Railway) the `prod` profile reads `DATABASE_URL`, `DB_USER` and `DB_PASSWORD`, which reference the Railway Postgres service, plus `JWT_SECRET` and `ADMIN_PASSWORD`.
 
-### Step 4: Run Backend
+Or run the whole stack with metrics: `docker compose -f ops/docker-compose.yml up --build` (Grafana on http://localhost:3001).
+
+### Step 3: Run Backend
 
 ```bash
 # Run with Maven wrapper (local profile is default)
@@ -141,7 +120,7 @@ cd backend
 
 ### Add a Service to Monitor
 
-Connect to your Supabase database and run:
+Connect to your database and run:
 ```sql
 INSERT INTO dev.services (name, url, check_type) 
 VALUES ('My API', 'https://api.example.com/health', 'HTTP');
@@ -167,9 +146,9 @@ export const POLLING_INTERVAL = 30000; // Match backend interval
 
 ### Backend won't start
 - Verify Java 21: `java -version`
-- Check Supabase credentials in `application-local.properties`
+- Check the database credentials in `application-local.properties`
 - Use **Session Pooling** JDBC URL (not Direct Connection!)
-- Ensure Supabase project is active
+- Ensure the Postgres container is running
 
 ### Frontend can't connect
 - Verify backend is running: Open http://localhost:8080/actuator/health
