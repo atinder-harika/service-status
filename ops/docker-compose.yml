@@ -1,0 +1,29 @@
+# Local stack: Postgres + the backend + Prometheus + Grafana.
+#   docker compose -f ops/docker-compose.yml up --build
+# Grafana: http://localhost:3001 (admin / admin), dashboard "Service Status"
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_DB: status, POSTGRES_PASSWORD: pg }
+  backend:
+    build: ../backend
+    depends_on: [db]
+    ports: ["8080:8080"]
+    mem_limit: 512m
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/status
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: pg
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-32-bytes-min}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    ports: ["9090:9090"]
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports: ["3001:3000"]
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro

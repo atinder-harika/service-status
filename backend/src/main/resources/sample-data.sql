@@ -1,8 +1,8 @@
 -- Sample data for testing service-status application
--- Run this in Supabase SQL Editor after Flyway migration completes
+-- Run this with psql after Flyway migration completes
 
 -- For LOCAL DEVELOPMENT (dev schema):
--- Copy and run this block in Supabase SQL Editor
+-- Copy and run this block
 
 INSERT INTO dev.services (name, url, check_type, current_status) 
 VALUES 

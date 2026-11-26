@@ -134,4 +134,33 @@ class HealthCheckServiceTest {
         assertThat(savedService.getCurrentStatus()).isEqualTo("Down");
         assertThat(savedService.getLastCheckedAt()).isNotNull();
     }
+
+    @Test
+    void checksRunInParallelSoACycleTakesAboutTheSlowestCheck() throws Exception {
+        // 5 services that each take 1s to answer: one after another would be 5s+.
+        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/slow", ex -> {
+            try { Thread.sleep(1000); } catch (InterruptedException ignored) { }
+            ex.sendResponseHeaders(200, -1);
+            ex.close();
+        });
+        server.setExecutor(java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor());
+        server.start();
+        try {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/slow";
+            var services = java.util.stream.IntStream.range(0, 5)
+                .mapToObj(i -> new MonitoredService("svc" + i, url, "HTTP", "Unknown")).toList();
+            when(serviceRepository.findAll()).thenReturn(new java.util.ArrayList<>(services));
+            when(serviceRepository.save(any(MonitoredService.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            long start = System.nanoTime();
+            healthCheckService.checkAllServices();
+            long ms = (System.nanoTime() - start) / 1_000_000;
+
+            assertThat(services).allMatch(s -> "Operational".equals(s.getCurrentStatus()));
+            assertThat(ms).isLessThan(3000);
+        } finally {
+            server.stop(0);
+        }
+    }
 }

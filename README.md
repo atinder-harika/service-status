@@ -9,7 +9,7 @@
 
 ## Status
 
-The live site is offline for now. The monitor crashes after a few hours, and finding and fixing that is the next job for this project. You can still run it locally with the steps below.
+The backend is back on Railway (API: https://service-status-backend-production.up.railway.app/api/services), now on Railway's own PostgreSQL after the free Supabase database was shut down. The old deployment crashed after a few hours; the root cause is still being confirmed, so this version ships with the evidence it needs: a heap dump on out-of-memory, rolling GC logs, and Prometheus metrics for heap, threads and check timings.
 
 ---
 
@@ -27,11 +27,22 @@ A full-stack web application that monitors the health and availability of multip
 
 ---
 
+## Design notes (why, how, trade-off)
+
+- **Checks on virtual threads.** Each check runs on its own virtual thread, so a cycle takes as long as the slowest service instead of the sum of all of them. Blocking `WebClient.block()` is fine on a virtual thread. Trade-off: a burst of checks can now hit the DB pool at once, so the pool size (10) caps real concurrency on saves.
+- **Timeouts at two levels.** A 5 s socket connect and response timeout, plus a 5 s reactive timeout, so a host that never answers can't hold a connection open.
+- **JWT for writes.** Reads are public (it's a status page). `POST /api/auth/token` swaps the admin login for a short-lived HS256 JWT; adding or removing services needs the `admin` scope. Stateless, so no sessions or CSRF tokens. Trade-off: one shared admin, no user accounts.
+- **Metrics.** `/actuator/prometheus` exposes `service_status_check` (per service, p95/p99), `service_status_check_cycle`, and up/down gauges, plus JVM heap, GC and thread metrics. `ops/docker-compose.yml` runs Postgres + backend + Prometheus + Grafana with a ready dashboard.
+- **Crash evidence.** The container sizes the heap from its memory limit (`MaxRAMPercentage=75`), writes a heap dump and exits on OOM so the platform restarts it, and keeps rolling GC logs in `/diag`.
+
+---
+
 ## 🛠️ Tech Stack
 
 **Frontend:** React 18 • TypeScript • Vite • Tailwind CSS • Vitest  
 **Backend:** Spring Boot 3.5.7 • Java 21 • PostgreSQL • Flyway  
-**Infrastructure:** GitHub Pages • Supabase • GitHub Actions
+**Infrastructure:** Railway (backend + PostgreSQL) • GitHub Pages • GitHub Actions  
+**Ops:** Spring Boot Actuator • Micrometer • Prometheus • Grafana • Spring Security (JWT)
 
 ---
 

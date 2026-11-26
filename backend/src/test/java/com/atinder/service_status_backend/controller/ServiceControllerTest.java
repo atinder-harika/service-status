@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests HTTP endpoints with mocked repository
  */
 @WebMvcTest(ServiceController.class)
-@Import(ServiceControllerTest.TestConfig.class)
+@Import({ServiceControllerTest.TestConfig.class, com.atinder.service_status_backend.config.SecurityConfig.class})
 class ServiceControllerTest {
 
     @Autowired
