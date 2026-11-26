@@ -99,7 +99,9 @@ public class HealthCheckService {
                 .uri(service.getUrl())
                 .retrieve()
                 .toBodilessEntity()
-                .timeout(CHECK_TIMEOUT)
+                // Backstop only: one second past the socket timeouts, so they fire first. With equal
+                // timeouts the two race, and the losing connect error gets logged as onErrorDropped.
+                .timeout(CHECK_TIMEOUT.plusSeconds(1))
                 .block();
             service.setCurrentStatus("Operational");
         } catch (Exception e) {
